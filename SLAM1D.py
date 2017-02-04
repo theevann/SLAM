@@ -107,17 +107,12 @@ class EKFModel:
 
         C = gradMeanMes
         toInvert = inv(dot(dot(C.T, Sigma), C) + self.Z)
-        K = dot(dot(Sigma,C), toInvert)
+        K = dot(dot(Sigma, C), toInvert)
 
-        # print("Safety Check : %r" % (meanMes == dot(C.T, mu))[0, 0])
-        # print("mu:")
-        # print(mu)
-        # print("z : %f" % z)
-        # print("zM : %f" % zM)
-        self.mu += dot(K,z - zM)
-        self.Sigma = dot(np.eye(self.dimension) - dot(K,C.T), Sigma)
+        self.mu += dot(K, z - zM)
+        self.Sigma = dot(np.eye(self.dimension) - dot(K, C.T), Sigma)
 
-    def __get_mean_measurement_params(self, mu, ldmIndex): #KEPT as is
+    def __get_mean_measurement_params(self, mu, ldmIndex):
         realIndex = self.robotFeaturesDim + ldmIndex * self.envFeaturesDim
         ldmMeanState = mu[realIndex: realIndex + self.envFeaturesDim]
         rMeanState = mu[:self.robotFeaturesDim]
@@ -134,7 +129,7 @@ class EIFModel:
         self.dimension = dimension
 
         self.H = np.eye(dimension)
-        self.b = dot(muInitial.T, self.H)  # np.zeros((1, dimension))
+        self.b = dot(muInitial.T, self.H)
         self.S = np.zeros(dimension * robotFeaturesDim).reshape((dimension, robotFeaturesDim))
         self.S[:robotFeaturesDim] = np.eye(robotFeaturesDim)
         self.invZ = inv(covMes)
@@ -143,10 +138,8 @@ class EIFModel:
 
     def update(self, measures, landmarkIds, command, U):
         self.__motion_update(command, U)
-        # print(eif.estimate())
         for ldmIndex, ldmMes in zip(landmarkIds, measures):
             self.__measurement_update(ldmMes, ldmIndex)
-        # print(eif.estimate())
         return self.H, self.b
 
     def __motion_update(self, command, U):
@@ -163,11 +156,6 @@ class EIFModel:
         zM = np.atleast_2d(meanMes)
         C = gradMeanMes
 
-        # print("Safety Check : %r" % (meanMes == dot(C.T, mu))[0, 0])
-        # print("mu:")
-        # print(mu)
-        # print("z : %f" % z)
-        # print("zM : %f" % zM)
         self.H += dot(dot(C, self.invZ),  C.T)
         self.b += dot(dot((z - zM + dot(C.T, mu)).T, self.invZ), C.T)
 
@@ -187,6 +175,7 @@ class EIFModel:
 
 
 measureFunction = lambda rState, landmark: np.sign(landmark[0, 0] - rState[0, 0]) * np.linalg.norm(rState - landmark)
+
 def gradMeasureFunction(state, ldmIndex):
     grad = np.zeros_like(state)
     grad[0] = -1
@@ -279,7 +268,7 @@ for t in range(1, T):
 
     mus_eif[t] = np.squeeze(muEIF)
 
-for t in range(1,T):
+for t in range(1, T):
     muSimple += listCommands[t-1]
     mus_simple[t] = np.squeeze(muSimple)
     states[t] = np.squeeze(listStates[t-1])
@@ -306,7 +295,6 @@ print(states[5, 0])
 print(mus_simple[5, 0])
 print(mus_eif[5, 0])
 print(mus_ekf[5, 0])
-
 
 
 plt.figure()
