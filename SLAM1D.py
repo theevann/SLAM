@@ -52,7 +52,7 @@ class BasicMeasurement:
         nbLandmark = (dim - dimR) / dimE
 
         mes = np.zeros(nbLandmark)
-        landmarkIds = np.zeros(nbLandmark)
+        landmarkIds = np.zeros(nbLandmark).astype(int)
         j = 0
         for i, landmark in enumerate(envState.reshape((nbLandmark, dimE, 1))):
             if (np.linalg.norm(rState - landmark) < self.detectionSize) or (self.detectionSize is 0):
@@ -161,6 +161,7 @@ class EIFModel:
 
     def __get_mean_measurement_params(self, mu, ldmIndex):
         realIndex = self.robotFeaturesDim + ldmIndex * self.envFeaturesDim
+        # import ipdb; ipdb.set_trace()
         ldmMeanState = mu[realIndex: realIndex + self.envFeaturesDim]
         rMeanState = mu[:self.robotFeaturesDim]
 
@@ -206,7 +207,7 @@ muSimple = np.zeros_like(state)  # Estimated robot state basic
 # mu[1] = 50
 # mu[1:nbLandmark+1] = np.arange(0, nbLandmark * spaceBetween, spaceBetween).reshape(nbLandmark, 1)
 muSimple = state.copy()
-muSimple[1:] += np.random.normal(0, covarianceMeasurements, nbLandmark).reshape(nbLandmark, 1)
+muSimple[1:] += np.random.multivariate_normal([0], covarianceMeasurements, nbLandmark).reshape(nbLandmark, 1)
 
 
 muEIF = np.zeros_like(state)  # Estimated robot state using EIF Algorithm
